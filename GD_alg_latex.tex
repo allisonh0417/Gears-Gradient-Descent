@@ -1,0 +1,188 @@
+\documentclass[11pt]{article}
+\usepackage[margin=4cm]{geometry}
+\usepackage{algpseudocode}
+\usepackage{algorithm}\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+
+\title{Gradient Descent Algorithms}
+\author{ahwan034 }
+\date{August 2024}
+
+\begin{document}
+
+\maketitle
+
+\textbf{Link to GitHub:} \\
+\url{https://github.com/allisonh0417/Gears-Gradient-Descent} \\
+\textit{Updated Aug 14, 2024}
+
+
+
+\begin{algorithm}[H]
+\caption{Adaptive Step Size Function}
+\begin{algorithmic}
+\State \textbf{Input:} \text{Switch} $z$, \text{Current Error} $err$, \text{Step Size} $h$, \text{Input Gradients} $A$, $B$, $y_{\text{curr}}$
+\State \textbf{Output:} $h$, $z$
+\If{$z = 0$}
+    \State $h_{\text{new}} \gets h \times 1.1$ \Comment{Increase step size}
+\Else
+    \State $h_{\text{new}} \gets h \times 0.9$ \Comment{Decrease step size}
+\EndIf
+
+\State $y_{\text{new}} \gets y_{\text{curr}} + h_{\text{new}} \times f(y_{\text{curr}}, A, B)$
+\State $err_{\text{new}} \gets \|A \times y_{\text{new}} - B\|$
+    
+\If{$err_{\text{new}} \leq err$} 
+    \State $h \gets h_{\text{new}}$ \Comment{Only change step size if new estimated error is smaller than current error}
+\ElsIf{$z = 0$}
+    \State $z \gets 1$
+\Else
+    \State $z \gets 0$
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Nesterov's Accelerated Gradient (NAG) Algorithm}
+\begin{algorithmic}
+\State \textbf{Input:} \text{Input Gradients} $A$, $B$, $y_{\text{curr}}$, \text{Convergence} $\epsilon = 10^{-6}$
+\State \textbf{Initialize:} \text{Step Size} $h = \frac{1}{3\|A\|^2}$
+
+\While{$err > \epsilon$}
+
+    \State $y_{\text{prev}} \gets y_{\text{curr}}$
+    \State $y_{\text{curr}} \gets y_{\text{prev}} - h \times f(y_{\text{curr}}, A, B)$
+    \State $y_{\text{new}} \gets y_{\text{curr}} + \frac{k-1}{k+2} \times (y_{\text{curr}} - y_{\text{prev}})$
+    \State $err \gets \|A y_{\text{curr}} - B\|$
+
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+\caption{Nesterov's Accelerated Gradient (NAG) Algorithm Adaptive}
+\begin{algorithmic}
+\State \textbf{Input:} \text{Input Gradients} $A$, $B$, $y_{\text{curr}}$, \text{Switch} $z = 0$, \text{Convergence} $\epsilon = 10^{-6}$
+\State \textbf{Initialize:} \text{Step Size} $h = \frac{1}{3\|A\|^2}$
+
+\While{$err > \epsilon$}
+
+    \State $y_{\text{prev}} \gets y_{\text{curr}}$
+    \State $y_{\text{curr}} \gets y_{\text{prev}} - h \times f(y_{\text{curr}}, A, B)$
+    \State $y_{\text{new}} \gets y_{\text{curr}} + \frac{k-1}{k+2} \times (y_{\text{curr}} - y_{\text{prev}})$
+    \State $err \gets \|A y_{\text{curr}} - B\|$
+
+    \Comment{Adaptive step size adjustment}
+    \If{$z = 0$}
+        \State $h_{\text{new}} \gets h \times 1.005$ \Comment{Increase step size}
+    \Else
+        \State $h_{\text{new}} \gets h \times 0.9$ \Comment{Decrease step size}
+    \EndIf
+
+    
+    \State $y_{\text{prev\_test}} \gets y_{\text{curr}}$ \Comment{Test new potential step size}
+    \State $y_{\text{curr\_test}} \gets y_{\text{prev\_test}} - h_{\text{new}} \times f(y_{\text{curr}}, A, B)$
+    \State $y_{\text{new}} \gets y_{\text{curr\_test}} + \frac{k-1}{k+2} \times (y_{\text{curr\_test}} - y_{\text{prev\_test}})$
+    \State $err_{\text{new}} \gets \|A y_{\text{new\_test}} - B\|$
+
+    \If{$err_{\text{new}} < err$}
+        \State $h \gets h_{\text{new}}$
+        \State $err \gets err_{\text{new}}$
+        \State $y_{\text{curr}} \gets y_{\text{new\_test}}$
+        \State $z \gets 0$ \Comment{Continue increasing step size}
+    \Else
+        \State $z \gets 1$ \Comment{Start decreasing step size}
+    \EndIf
+
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+\begin{align*}
+x_k &= y_{k-1} - s \nabla f(y_{k-1}), \\
+y_k &= x_k + \frac{k-1}{k+2} (x_k - x_{k-1}).
+\end{align*}
+
+\text{If } \epsilon > \|Ax - B\|, \text{ then function converges,} \\
+\text{where } \epsilon \text{ is the tolerance level, } \epsilon = 10^{-6} \text{.}
+
+
+\begin{algorithm}[H]
+\caption{Adaptive Step Size Algorithm}
+\begin{algorithmic}
+\State \textbf{Input:} \text{Gradients } $A$, $B$, $y_{\text{curr}}$, \text{Switch} $z$, \text{Current Error} $err_{\text{global}}$
+
+\State \textbf{Output:} $h$, $z$
+
+    \While{$err_{\text{new}} \geq err_{\text{global}}$ \textbf{and} $t < 5$}
+        \If{$z = 0$} \Comment{Increase step size}
+            \State $h_{\text{new}} \gets h \times 1.1$
+            \State $y_{\text{new\_test}} \gets y_{\text{curr}} + h_{\text{new}} \times f(y_{\text{curr}}, A, B)$
+            \State $err_{\text{new}} \gets \|A \times y_{\text{new\_test}} - B\|$
+            
+            \If{$err_{\text{new}} < err_{\text{local}}$}
+                \State $err_{\text{local}} \gets err_{\text{new}}$
+                \State $h \gets h_{\text{new}}$
+                \State $err_{\text{prev}} \gets err_{\text{new}}$
+            \ElsIf{$err_{\text{new}} < err_{\text{global}}$}
+                \State $h \gets h_{\text{new}}$
+                \State \textbf{break}
+            \ElsIf{$err_{\text{prev}} < err_{\text{new}}$}
+                \State $z \gets 1$
+                \State $err_{\text{prev}} \gets err_{\text{new}}$
+            \Else
+                \State $err_{\text{prev}} \gets err_{\text{new}}$
+            \EndIf
+        \Else \Comment{Decrease step size}
+            \State $h_{\text{new}} \gets h \times 0.9$
+            \State $y_{\text{new\_test}} \gets y_{\text{curr}} + h_{\text{new}} \times f(y_{\text{curr}}, A, B)$
+            \State $err_{\text{new}} \gets \|A \times y_{\text{new\_test}} - B\|$
+            
+            \If{$err_{\text{new}} < err_{\text{local}}$}
+                \State $err_{\text{local}} \gets err_{\text{new}}$
+                \State $h \gets h_{\text{new}}$
+                \State $err_{\text{prev}} \gets err_{\text{new}}$
+            \ElsIf{$err_{\text{new}} < err_{\text{global}}$}
+                \State $h \gets h_{\text{new}}$
+                \State \textbf{break}
+            \ElsIf{$err_{\text{prev}} < err_{\text{new}}$}
+                \State $z \gets 0$
+                \State $err_{\text{prev}} \gets err_{\text{new}}$
+            \Else
+                \State $err_{\text{prev}} \gets err_{\text{new}}$
+            \EndIf
+        \EndIf
+    \EndWhile
+    \State $h_{\text{new}} \gets h$
+\end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}[H]
+\caption{5th Order Gear's Method }
+\begin{algorithmic}[1]
+\While{$\text{err} > \epsilon$}
+    \State $y_{\text{prev}} \gets y_{\text{curr}}$
+    \State \textbf{switch} (num) \Comment{case # equals n-th Order}
+    \State \hskip1em \textbf{case} 1: $y_{\text{curr}} \gets y_{\text{prev}} + h_1 \cdot f(y_{\text{prev}}, A, B)$
+    \State \hskip1em \textbf{case} 2: $y_{\text{curr}} \gets \frac{4}{3}y_{\text{prev}} - \frac{1}{3}y_{\text{prev\_0}} + \frac{2}{3}h_1 \cdot f(y_{\text{prev}}, A, B)$
+    \State \hskip1em \textbf{case} 3: $y_{\text{curr}} \gets \frac{18}{11}y_{\text{prev}} - \frac{9}{11}y_{\text{prev\_1}} + \frac{2}{11}y_{\text{prev\_0}} + \frac{6}{11}h_1 \cdot f(y_{\text{prev}}, A, B)$
+    \State \hskip1em \textbf{case} 4: $y_{\text{curr}} \gets \frac{48}{25}y_{\text{prev}} - \frac{36}{25}y_{\text{prev\_2}} + \frac{16}{25}y_{\text{prev\_1}} - \frac{3}{25}y_{\text{prev\_0}} + \frac{12}{25}h_1 \cdot f(y_{\text{prev}}, A, B)$
+    \State \hskip1em \textbf{case} 5: $y_{\text{curr}} \gets \frac{300}{137}y_{\text{prev}} - \frac{300}{137}y_{\text{prev\_3}} + \frac{200}{137}y_{\text{prev\_2}} - \frac{75}{137}y_{\text{prev\_1}} + \frac{12}{137}y_{\text{prev\_0}} + \frac{60}{137}h_1 \cdot f(y_{\text{prev}}, A, B)$
+    
+    \State $\text{err} \gets \|A \cdot y_{\text{curr}} - B\|$
+    \If{$\text{err} > \text{last\_valid\_err}$}
+        \State $[h_1, z] \gets \text{new\_step}(z, \text{err}, h_1, A, B, y_{\text{curr}})$
+        \State $\text{num} \gets 1$
+    \Else
+        \State $\text{last\_valid\_err} \gets \text{err}$
+        \State $\text{num} \gets \min(\text{num} + 1, 5)$
+    \EndIf
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+
+
+\end{document}
